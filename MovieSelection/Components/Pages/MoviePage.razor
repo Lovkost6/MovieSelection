@@ -1,0 +1,47 @@
+﻿@page "/movie/{id:int}"
+@using Microsoft.EntityFrameworkCore
+@using MovieSelection.Data
+@using MovieSelection.Model
+@inject IDbContextFactory<ApplicationContext> DbFactory
+
+
+<h3>А вот и победитель!</h3> 
+    <div class="card text-white bg-success mb-3">
+        <div class="card-body">
+            <div class="d-flex">
+                <div>
+                    <img class="m-1" src="@winnerMovie.PreviewUrl" width="300" height="500"/>
+                </div>
+                <div class="ml-3">
+                    <h5 class="card-title">@winnerMovie.Name</h5>
+                    <span>@winnerMovie.Description</span>
+                    <h5>Жанры:&nbsp </h5>
+                    @foreach (var x in winnerMovie.Genres)
+                    {
+                    <h6>@x.Name</h6>
+                    }
+                </div>
+            </div>
+            <div class="mt-3">
+                <h5>Год:&nbsp @winnerMovie.Year</h5>
+                <h5>Возрастные ограничения:&nbsp @winnerMovie.AgeRating +</h5>
+                <h5>Продолжительность:&nbsp @winnerMovie.MovieLength @winnerMovie.SeriesLength мин.</h5>
+                <h5>Рейтинг на Кинопоиске:&nbsp @winnerMovie.RatingKP</h5>
+            </div>
+        </div>
+    </div>
+
+@code {
+    [Parameter] public int id { get; set; }
+    Movie winnerMovie = new Movie();
+    
+    
+    protected override void OnInitialized()
+    {
+        var dbContext = DbFactory.CreateDbContext();
+        winnerMovie =  dbContext.Movies
+            .Include(x=>x.Genres)
+            .FirstOrDefault(x => x.Id == id);
+    }
+
+}

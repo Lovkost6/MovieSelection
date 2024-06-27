@@ -1,0 +1,76 @@
+﻿@page "/"
+@using Microsoft.EntityFrameworkCore
+@using global::MovieSelection.Data
+@using global::MovieSelection.Model
+@rendermode InteractiveServer
+@inject IDbContextFactory<ApplicationContext> DbFactory
+@inject NavigationManager Navigation
+
+<PageTitle>Home</PageTitle>
+<div class="row">
+    <div class="col-sm-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">@first.Name</h5>
+                <a @onclick="_ => GenreSelection(second)" class="btn btn-primary">Да!</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">@second.Name</h5>
+                <a @onclick="_ => GenreSelection(first)" class="btn btn-primary">Да!</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code
+{
+    List<Genre> genres = [];
+    Genre second = new();
+    Genre first = new();
+
+    Random random = new Random();
+
+    protected override void OnInitialized()
+    {
+        var dbContext = DbFactory.CreateDbContext();
+        genres = dbContext.Genres.ToList();
+
+        first = genres[random.Next(0, genres.Count)];
+        second = genres[random.Next(0, genres.Count )];
+        while (first == second)
+        {
+            second = genres[random.Next(0, genres.Count)];
+        }
+    }
+
+    public void GenreSelection(Genre genre)
+    {
+        var findGenre = genres.FirstOrDefault(x => x.Name == genre.Name);
+        genres.Remove(findGenre);
+        second = genres[random.Next(0, genres.Count)];
+        first = genres[random.Next(0, genres.Count)];
+        while (first == second)
+        {
+            second = genres[random.Next(0, genres.Count)];
+        }
+
+        if (genres.Count == 2)
+        {
+            var query = new List<string>();
+            foreach (var x in genres)
+            {
+                query.Add("genre="+x.Id);
+            }
+
+            Navigation.NavigateTo($"movie?{string.Join("&",query)}");
+            return;
+        }
+    }
+
+
+}
